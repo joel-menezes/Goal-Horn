@@ -8,6 +8,7 @@ from pywizlight import wizlight, PilotBuilder
 from pywizlight.exceptions import WizLightConnectionError
 import requests
 import os
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 
@@ -19,6 +20,7 @@ BULBS = []
 PLAYLIST_NAME = "OTR"
 
 # Spotify Elements
+load_dotenv()
 CLIENT_ID = os.getenv("CLIENT_ID") 
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 REDIRECT_URL = os.getenv("REDIRECT_URL")
@@ -73,12 +75,14 @@ async def goal(bulbs, colours):
         PLAYLIST_NAME = "TOR"
     else:
         PLAYLIST_NAME = "OTR"
-    
+    print("GOAL")
     devices = spotify_engine.devices()
     chosen_device = None
     for device in devices['devices']:
-        chosen_device = device
+        chosen_device = device['id']
+        break
 
+    print(chosen_device)
     results = spotify_engine.current_user_playlists(limit=50)
     playlist_choice = ""
     for item in results['items']:
@@ -88,7 +92,7 @@ async def goal(bulbs, colours):
     colour_changes = 0
 
     if not playlist_choice:
-        print(f"❌ Playlist '{PLAYLIST_NAME}' not found in your account.")
+        print(f"Playlist '{PLAYLIST_NAME}' not found in your account.")
         exit()
     spotify_engine.start_playback(device_id=chosen_device, context_uri=playlist_choice)
 
@@ -115,7 +119,8 @@ async def goal_other(bulbs, colours):
     devices = spotify_engine.devices()
     chosen_device = None
     for device in devices['devices']:
-        chosen_device = device
+        chosen_device = device['id']
+        break
 
     results = spotify_engine.current_user_playlists(limit=50)
     playlist_choice = ""
@@ -172,7 +177,6 @@ async def background_task():
     global home, away
     home, away = (-1, 0)
     
-    print("TEST")
     while True:
         if TEAM_CODE:
             print(TEAM_CODE)
