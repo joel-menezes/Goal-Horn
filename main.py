@@ -71,7 +71,7 @@ async def colour_change(ip_address, colour):
         print(f"Exception was thrown (Colour Change): {e}")
 
 async def goal(bulbs, colours):
-    global PLAYLIST_NAME
+    global PLAYLIST_NAME, bell_time
     if TEAM_CODE == "TOR":
         PLAYLIST_NAME = "TOR"
     else:
@@ -110,7 +110,7 @@ async def goal(bulbs, colours):
             await brightness_change(bulb, 50)
 
 async def goal_other(bulbs, colours):
-    global PLAYLIST_NAME
+    global PLAYLIST_NAME, bell_time
     if TEAM_CODE == "TOR":
         PLAYLIST_NAME = "TOR"
     else:
@@ -177,7 +177,7 @@ def get_game_score(api_url, team_abbrev, date):
             
 # Main Logic/Loop
 async def background_task():
-    global home, away
+    global home, away, PLAYLIST_NAME
     home, away = (-1, 0)
     
     while True:
@@ -210,11 +210,13 @@ async def background_task():
                 print(f"Exception was thrown: {e}")
             try:
                 if PLAYLIST_NAME == "TOR":
-                    if abs(bell_time - round(time.time())) > 67 and abs(bell_time - round(time.time())) < 1000:
+                    if abs(bell_time - round(time.time())) > 65 and abs(bell_time - round(time.time())) < 1000:
                         spotify_engine.pause_playback()
+                        bell_time = 0
                 else:
-                    if abs(bell_time - round(time.time())) > 57 and abs(bell_time - round(time.time())) < 1000:
+                    if abs(bell_time - round(time.time())) > 55 and abs(bell_time - round(time.time())) < 1000:
                         spotify_engine.pause_playback()
+                        bell_time = 0
             except Exception as e:
                 print (e)
 
