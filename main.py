@@ -4,6 +4,7 @@ import random
 from flask import Flask, request, jsonify, render_template
 from pywizlight import wizlight, PilotBuilder
 from pywizlight.exceptions import WizLightConnectionError
+import requests
 
 app = Flask(__name__)
 
@@ -22,7 +23,7 @@ async def turn_on_bulb(ip_address):
         await bulb.turn_on()
         print("Bulb, Turned on Successfully!")
     except Exception as e:
-        print(f"Exception was thrown: {e}")
+        print(f"Exception was thrown (Turn On): {e}")
 
 async def turn_off_bulb(ip_address):
     try:
@@ -30,7 +31,7 @@ async def turn_off_bulb(ip_address):
         await bulb.turn_off()
         print("Bulb, Turned off Successfully!")
     except Exception as e:
-        print(f"Exception was thrown: {e}")
+        print(f"Exception was thrown (Turn Off): {e}")
 
 async def brightness_change(ip_address, brightness):
     try:
@@ -38,10 +39,12 @@ async def brightness_change(ip_address, brightness):
         await bulb.turn_on(PilotBuilder(brightness=brightness))
         print(f"Bulb Brightness changed to {brightness} Successfully!")
     except Exception as e:
-        print(f"Exception was thrown: {e}")
+        print(f"Exception was thrown (Brightness Changed): {e}")
 
 
 async def colour_change(ip_address, colour):
+    colour = tuple(colour)
+    print(colour)
     try:
         bulb = wizlight(ip_address)
         if colour == (0, 0, 0):
@@ -49,10 +52,10 @@ async def colour_change(ip_address, colour):
         elif colour == (255, 255, 255):
             await bulb.turn_on(PilotBuilder(cold_white=255))
         else:
-            await bulb.turn_on(PilotBuilder(colour))
+            await bulb.turn_on(PilotBuilder(rgb=colour))
         print(f"Bulb Brightness changed to {colour} Successfully!")
     except Exception as e:
-        print(f"Exception was thrown: {e}")
+        print(f"Exception was thrown (Colour Change): {e}")
 
 async def goal(bulbs, colours):
     global PLAYLIST_NAME
@@ -60,17 +63,17 @@ async def goal(bulbs, colours):
         PLAYLIST_NAME = "TOR"
     else:
         PLAYLIST_NAME = "OTR"
-
+    
     colour_changes = 0
 
     while colour_changes < 15:
         for bulb in bulbs:
             await colour_change(bulb, random.choice(colours))
-            if colour_change % 2 == 0:
-                await brightness_change(bulb, 50)
+            if colour_changes % 2 == 0:
+                await brightness_change(bulb, 100)
             else:
                 await brightness_change(bulb, 100)
-        a += 1
+        colour_changes += 1
     for bulb in bulbs:
             await brightness_change(bulb, 50)
 
@@ -86,11 +89,11 @@ async def goal_other(bulbs, colours):
     while colour_changes < 15:
         for bulb in bulbs:
             await colour_change(bulb, (255, 0, 0))
-            if colour_change % 2 == 0:
-                await brightness_change(bulb, 50)
+            if colour_changes % 2 == 0:
+                await brightness_change(bulb, 100)
             else:
                 await brightness_change(bulb, 100)
-        a += 1
+        colour_changes += 1
     for bulb in bulbs:
             await brightness_change(bulb, 50)
 
@@ -101,7 +104,7 @@ def get_game_score(api_url, team_abbrev, date):
 
     home_team_abrev = ""
     try:
-        response = request.get(api_url)
+        response = requests.get(api_url)
         data = response.json()
         for game in data["gamesByDate"]:
             if game["date"] == DATE:
@@ -125,12 +128,13 @@ async def background_task():
     global home, away
     home, away = (-1, 0)
     
+    print("TEST")
     while True:
         if TEAM_CODE:
             print(TEAM_CODE)
-        while TEAM_CODE != "":
+        while TEAM_CODE:
             api_url = f"https://api-web.nhle.com/v1/scoreboard/{TEAM_CODE}/now/"
-            response = request.get(api_url)
+            response = requests.get(api_url)
             data = response.json()
             state = get_state(data)
 
@@ -144,7 +148,7 @@ async def background_task():
                     await goal_other(BULBS, COLOURS)
                 elif score[0] < home:
                     home, away = score
-                elif score[1] < score:
+                elif score[1] < away:
                     home, away = score
                 else:
                     home, away = score
