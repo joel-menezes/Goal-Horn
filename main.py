@@ -118,7 +118,48 @@ def get_game_score(api_url, team_abbrev, date):
     except Exception as e:
         print(f"An Error has Occured: {e}")
             
+# Main Logic/Loop
+async def background_task():
+    global home, away
+    home, away = (-1, 0)
+    
+    while True:
+        if TEAM_CODE:
+            print(TEAM_CODE)
+        while TEAM_CODE != "":
+            api_url = f"https://api-web.nhle.com/v1/scoreboard/{TEAM_CODE}/now/"
+            response = request.get(api_url)
+            data = response.json()
+            state = get_state(data)
 
+            try:
+                score = get_game_score(api_url, TEAM_CODE, DATE)
+                if score[0] > home:
+                    home, away = score
+                    await goal(BULBS, COLOURS)
+                elif score[1] > away:
+                    home, away = score
+                    await goal_other(BULBS, COLOURS)
+                elif score[0] < home:
+                    home, away = score
+                elif score[1] < score:
+                    home, away = score
+                else:
+                    home, away = score
+                for bulb in BULBS:
+                    await colour_change(bulb, random.choice(COLOURS))      
+                    await brightness_change(bulb, 50)          
+            except Exception as e:
+                print(f"Exception was thrown: {e}")
+
+
+def get_state(data):
+    game_state = ""
+    for games in data["gamesByDate"]:
+        if games["date"] == DATE:
+            for ids in games["games"]:
+                game_state = ids["gameState"]
+    return game_state
 
 @app.route("/", methods=['POST'])
 def index():
