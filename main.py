@@ -9,6 +9,7 @@ from pywizlight.exceptions import WizLightConnectionError
 import requests
 import os
 from dotenv import load_dotenv
+import time
 
 app = Flask(__name__)
 
@@ -25,8 +26,8 @@ CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 REDIRECT_URL = os.getenv("REDIRECT_URL")
 SCOPE = "user-read-playback-state user-modify-playback-state"
-
 spotify_engine = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, redirect_uri=REDIRECT_URL, scope=SCOPE))
+bell_time = 0
 
 # BULB METHODS
 async def turn_on_bulb(ip_address):
@@ -95,7 +96,8 @@ async def goal(bulbs, colours):
         print(f"Playlist '{PLAYLIST_NAME}' not found in your account.")
         exit()
     spotify_engine.start_playback(device_id=chosen_device, context_uri=playlist_choice)
-
+    bell_time = round(time.time())
+    
     while colour_changes < 15:
         for bulb in bulbs:
             await colour_change(bulb, random.choice(colours))
@@ -134,7 +136,8 @@ async def goal_other(bulbs, colours):
         print(f"❌ Playlist '{PLAYLIST_NAME}' not found in your account.")
         exit()
     spotify_engine.start_playback(device_id=chosen_device, context_uri=playlist_choice)
-
+    bell_time = round(time.time())
+    
     while colour_changes < 15:
         for bulb in bulbs:
             await colour_change(bulb, (255, 0, 0))
@@ -205,6 +208,15 @@ async def background_task():
                     await brightness_change(bulb, 50)          
             except Exception as e:
                 print(f"Exception was thrown: {e}")
+            try:
+                if PLAYLIST_NAME == "TOR":
+                    if abs(bell_time - round(time.time())) > 67 and abs(bell_time - round(time.time())) < 1000:
+                        spotify_engine.pause_playback()
+                else:
+                    if abs(bell_time - round(time.time())) > 57 and abs(bell_time - round(time.time())) < 1000:
+                        spotify_engine.pause_playback()
+            except Exception as e:
+                print (e)
 
 
 def get_state(data):
