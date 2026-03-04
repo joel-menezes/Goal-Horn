@@ -1,3 +1,4 @@
+import random
 from flask import Flask, request, jsonify, render_template
 from pywizlight import wizlight, PilotBuilder
 from pywizlight.exceptions import WizLightConnectionError
@@ -9,6 +10,7 @@ TEAM_CODE = None
 DATE = ""
 COLOURS = []
 BULBS = []
+PLAYLIST_NAME = "OTR"
 
 # BULB METHODS
 
@@ -50,6 +52,45 @@ async def colour_change(ip_address, colour):
     except Exception as e:
         print(f"Exception was thrown: {e}")
 
+async def goal(bulbs, colours):
+    global PLAYLIST_NAME
+    if TEAM_CODE == "TOR":
+        PLAYLIST_NAME = "TOR"
+    else:
+        PLAYLIST_NAME = "OTR"
+
+    colour_changes = 0
+
+    while colour_changes < 15:
+        for bulb in bulbs:
+            await colour_change(bulb, random.choice(colours))
+            if colour_change % 2 == 0:
+                await brightness_change(bulb, 50)
+            else:
+                await brightness_change(bulb, 100)
+        a += 1
+    for bulb in bulbs:
+            await brightness_change(bulb, 50)
+
+async def goal_other(bulbs, colours):
+    global PLAYLIST_NAME
+    if TEAM_CODE == "TOR":
+        PLAYLIST_NAME = "TOR"
+    else:
+        PLAYLIST_NAME = "OTR"
+
+    colour_changes = 0
+
+    while colour_changes < 15:
+        for bulb in bulbs:
+            await colour_change(bulb, (255, 0, 0))
+            if colour_change % 2 == 0:
+                await brightness_change(bulb, 50)
+            else:
+                await brightness_change(bulb, 100)
+        a += 1
+    for bulb in bulbs:
+            await brightness_change(bulb, 50)
 
 
 def get_game_score(api_url, team_abbrev, date):
