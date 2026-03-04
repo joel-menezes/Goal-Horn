@@ -1,3 +1,5 @@
+import threading
+import asyncio
 import random
 from flask import Flask, request, jsonify, render_template
 from pywizlight import wizlight, PilotBuilder
@@ -161,6 +163,10 @@ def get_state(data):
                 game_state = ids["gameState"]
     return game_state
 
+
+def run_background_task():
+    asyncio.run(background_task())
+
 @app.route("/", methods=['POST'])
 def index():
     # Global Variables Passed Through Webserver
@@ -184,4 +190,6 @@ def index():
     return jsonify(response), 200
 
 if __name__ == "__main__":
+    thread = threading.Thread(target=run_background_task, daemon=True)
+    thread.start()
     app.run(port = 80, host = '0.0.0.0', debug = False)
