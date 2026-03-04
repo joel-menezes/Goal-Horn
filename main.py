@@ -1,3 +1,5 @@
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
 import threading
 import asyncio
 import random
@@ -5,6 +7,7 @@ from flask import Flask, request, jsonify, render_template
 from pywizlight import wizlight, PilotBuilder
 from pywizlight.exceptions import WizLightConnectionError
 import requests
+import os
 
 app = Flask(__name__)
 
@@ -15,8 +18,15 @@ COLOURS = []
 BULBS = []
 PLAYLIST_NAME = "OTR"
 
-# BULB METHODS
+# Spotify Elements
+CLIENT_ID = os.getenv("CLIENT_ID") 
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+REDIRECT_URI = os.getenv("REDIRECT_URI")
+SCOPE = "user-read-playback-state user-modify-playback-state"
 
+spotify_engine = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, redirect_uri=REDIRECT_URL, scope=SCOPE))
+
+# BULB METHODS
 async def turn_on_bulb(ip_address):
     try:
         bulb = wizlight(ip_address)
