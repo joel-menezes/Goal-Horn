@@ -1,4 +1,6 @@
 from flask import Flask, request, jsonify, render_template
+from pywizlight import wizlight, PilotBuilder
+from pywizlight.exceptions import WizLightConnectionError
 
 app = Flask(__name__)
 
@@ -7,6 +9,48 @@ TEAM_CODE = None
 DATE = ""
 COLOURS = []
 BULBS = []
+
+# BULB METHODS
+
+async def turn_on_bulb(ip_address):
+    try:
+        bulb = wizlight(ip_address)
+        await bulb.turn_on()
+        print("Bulb, Turned on Successfully!")
+    except Exception as e:
+        print(f"Exception was thrown: {e}")
+
+async def turn_off_bulb(ip_address):
+    try:
+        bulb = wizlight(ip_address)
+        await bulb.turn_off()
+        print("Bulb, Turned off Successfully!")
+    except Exception as e:
+        print(f"Exception was thrown: {e}")
+
+async def brightness_change(ip_address, brightness):
+    try:
+        bulb = wizlight(ip_address)
+        await bulb.turn_on(PilotBuilder(brightness=brightness))
+        print(f"Bulb Brightness changed to {brightness} Successfully!")
+    except Exception as e:
+        print(f"Exception was thrown: {e}")
+
+
+async def colour_change(ip_address, colour):
+    try:
+        bulb = wizlight(ip_address)
+        if colour == (0, 0, 0):
+            await bulb.turn_off()
+        elif colour == (255, 255, 255):
+            await bulb.turn_on(PilotBuilder(cold_white=255))
+        else:
+            await bulb.turn_on(PilotBuilder(colour))
+        print(f"Bulb Brightness changed to {colour} Successfully!")
+    except Exception as e:
+        print(f"Exception was thrown: {e}")
+
+
 
 def get_game_score(api_url, team_abbrev, date):
     other = 0
