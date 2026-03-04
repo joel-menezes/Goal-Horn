@@ -21,7 +21,7 @@ PLAYLIST_NAME = "OTR"
 # Spotify Elements
 CLIENT_ID = os.getenv("CLIENT_ID") 
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-REDIRECT_URI = os.getenv("REDIRECT_URI")
+REDIRECT_URL = os.getenv("REDIRECT_URL")
 SCOPE = "user-read-playback-state user-modify-playback-state"
 
 spotify_engine = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, redirect_uri=REDIRECT_URL, scope=SCOPE))
@@ -74,7 +74,23 @@ async def goal(bulbs, colours):
     else:
         PLAYLIST_NAME = "OTR"
     
+    devices = spotify_engine.devices()
+    chosen_device = None
+    for device in devices['devices']:
+        chosen_device = device
+
+    results = spotify_engine.current_user_playlists(limit=50)
+    playlist_choice = ""
+    for item in results['items']:
+        if item["name"].lower() == PLAYLIST_NAME.lower():
+            playlist_choice = item["uri"]
+            break
     colour_changes = 0
+
+    if not playlist_choice:
+        print(f"❌ Playlist '{PLAYLIST_NAME}' not found in your account.")
+        exit()
+    spotify_engine.start_playback(device_id=chosen_device, context_uri=playlist_choice)
 
     while colour_changes < 15:
         for bulb in bulbs:
@@ -95,6 +111,24 @@ async def goal_other(bulbs, colours):
         PLAYLIST_NAME = "OTR"
 
     colour_changes = 0
+
+    devices = spotify_engine.devices()
+    chosen_device = None
+    for device in devices['devices']:
+        chosen_device = device
+
+    results = spotify_engine.current_user_playlists(limit=50)
+    playlist_choice = ""
+    for item in results['items']:
+        if item["name"].lower() == PLAYLIST_NAME.lower():
+            playlist_choice = item["uri"]
+            break
+    colour_changes = 0
+
+    if not playlist_choice:
+        print(f"❌ Playlist '{PLAYLIST_NAME}' not found in your account.")
+        exit()
+    spotify_engine.start_playback(device_id=chosen_device, context_uri=playlist_choice)
 
     while colour_changes < 15:
         for bulb in bulbs:
