@@ -177,7 +177,7 @@ def get_game_score(api_url, team_abbrev, date):
             
 # Main Logic/Loop
 async def background_task():
-    global home, away, PLAYLIST_NAME
+    global home, away, PLAYLIST_NAME, bell_time
     home, away = (-1, 0)
     
     while True:
